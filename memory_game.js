@@ -1,5 +1,8 @@
-window.addEventListener('DOMContentLoaded', () =>{
-    const grid = new Grid();
+window.addEventListener('DOMContentLoaded', () => {
+    config = {
+        gridSize: 20
+    }
+    const grid = new Grid(config);
 
 });
 
@@ -8,37 +11,22 @@ class Grid {
     grid = [];
     firstCard = null;
     secondCard = null;
+    currentlyComparing = false;
 
-    constructor() {
-        this.createGrid(10);
+    constructor({gridSize}) {
+        this.maxValue = gridSize/2;
+        this.createGrid(gridSize);
         this.renderGrid();
         console.log(this.grid);
         this.events();
-    }
 
-    //TODO: ignore clicks on cards if 2 cards are comparing at the moment 
-    events () {
-        document.addEventListener('click', ({target}) => {
-            if (target.dataset.id) {
-                const clickedCard = this.grid.find(card => target.dataset.id == card.id);
-
-                if (!this.firstCard) {
-                    this.firstCard = clickedCard;
-                    this.firstCard.flipCard();
-                } else {
-                    this.secondCard = clickedCard;
-                    this.secondCard.flipCard();
-                    this.compareCards();
-                }
-            }
-        });
     }
 
     createGrid(size) {
         const uniqueCards = [];
 
         const createUniqueCard = () => {
-            const card = new Card();
+            const card = new Card(this.maxValue);
             if (!uniqueCards.find((item) => item.value === card.value)) {
                 uniqueCards.push(card);
             } else {
@@ -52,11 +40,11 @@ class Grid {
 
         const duplicates = []
         uniqueCards.forEach(uniqueCard => {
-            duplicates.push(new Card(uniqueCard.value))
+            duplicates.push(new Card(this.maxValue, uniqueCard.value))
         });
 
         this.grid.push(...uniqueCards, ...duplicates);
-        this.grid.sort( () => Math.random() - 0.5);
+        this.grid.sort(() => Math.random() - 0.5);
     }
 
     renderGrid() {
@@ -67,16 +55,36 @@ class Grid {
         });
     }
 
+    events () {
+        document.addEventListener('click', ({target}) => {
+            if (target.dataset.id && !this.currentlyComparing) {
+                const clickedCard = this.grid.find(card => target.dataset.id == card.id);
+                if (!this.firstCard) {
+                    this.firstCard = clickedCard;
+                    this.firstCard.flipCard();
+                } else {
+                    this.secondCard = clickedCard;
+                    this.secondCard.flipCard();
+                    this.compareCards();
+                }
+            }
+        });
+    }
+
     compareCards() {
         if (this.firstCard.value === this.secondCard.value) {
             //TODO: play success animation
+            this.currentlyComparing = true;
             setTimeout(() => {
                 this.resetComparison(true);
+                this.currentlyComparing = false;
             }, 700); 
         } else {
             //TODO: play failure animation
+            this.currentlyComparing = true;
             setTimeout(() => {
                 this.resetComparison(false);
+                this.currentlyComparing = false;
             }, 700); 
         }
     }
@@ -97,14 +105,14 @@ class Grid {
 
 
 class Card {
-    constructor(value) {
-        this.value = value || this.generateValue();
+    constructor(maxValue, value) {
+        this.value = value || this.generateValue(maxValue);
         this.id = Math.random() + this.value;
         this.isHidden = true;
     }
 
-    generateValue () {
-       return Math.floor(Math.random() * 5);
+    generateValue (maxValue) {
+       return Math.floor(Math.random() * maxValue + 1);
     }
 
     renderCard () {
@@ -132,7 +140,6 @@ class Card {
 
 {/*
 Bug list: 
-    - errors when clicking on other while game compares two cards
-    - once got 3 cards with same values. Ids are unique
+  
 
 */}
