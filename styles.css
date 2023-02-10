@@ -1,0 +1,27 @@
+body {
+    background-color: tomato;
+}
+
+#gridContainer {
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    width: 300px;
+    height: 800px;
+}
+
+.cardItem {
+    background-color: teal;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 5px;
+    width: 50px;
+    height: 50px;
+}
+
+.hidden {
+    background-color: #000;
+}
