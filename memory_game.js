@@ -6,7 +6,7 @@ window.addEventListener('DOMContentLoaded', () =>{
 
 class Grid {
     grid = [];
-    activeCard = null;
+    firstCard = null;
     secondCard = null;
 
     constructor() {
@@ -16,22 +16,30 @@ class Grid {
         this.events();
     }
 
+    //TODO: ignore clicks on cards if 2 cards are comparing at the moment 
     events () {
         document.addEventListener('click', ({target}) => {
-            const cardIndex = this.grid.indexOf(card => target.dataset.id == card.id);
-            console.log(this.grid[cardIndex], target.dataset.id)
-            this.activeCard = this.grid[cardIndex];
-            this.activeCard.flipCard();
+            if (target.dataset.id) {
+                const clickedCard = this.grid.find(card => target.dataset.id == card.id);
+
+                if (!this.firstCard) {
+                    this.firstCard = clickedCard;
+                    this.firstCard.flipCard();
+                } else {
+                    this.secondCard = clickedCard;
+                    this.secondCard.flipCard();
+                    this.compareCards();
+                }
+            }
         });
     }
 
     createGrid(size) {
-        //generate half array of unique cards
         const uniqueCards = [];
 
         const createUniqueCard = () => {
             const card = new Card();
-            if(!uniqueCards.find((item) => item.value === card.value)) {
+            if (!uniqueCards.find((item) => item.value === card.value)) {
                 uniqueCards.push(card);
             } else {
                 createUniqueCard();
@@ -42,13 +50,11 @@ class Grid {
             createUniqueCard();
         }
 
-        //generate other half with the same values based of half array
         const duplicates = []
         uniqueCards.forEach(uniqueCard => {
             duplicates.push(new Card(uniqueCard.value))
         });
 
-        //combine and shuffle arrays
         this.grid.push(...uniqueCards, ...duplicates);
         this.grid.sort( () => Math.random() - 0.5);
     }
@@ -62,8 +68,31 @@ class Grid {
     }
 
     compareCards() {
-
+        if (this.firstCard.value === this.secondCard.value) {
+            //TODO: play success animation
+            setTimeout(() => {
+                this.resetComparison(true);
+            }, 700); 
+        } else {
+            //TODO: play failure animation
+            setTimeout(() => {
+                this.resetComparison(false);
+            }, 700); 
+        }
     }
+
+    resetComparison (success) {
+        if (success) {
+            this.firstCard = null;
+            this.secondCard = null;
+        } else {
+            this.firstCard.flipCard();
+            this.secondCard.flipCard();
+            this.firstCard = null;
+            this.secondCard = null;
+        }
+    }
+
 }
 
 
@@ -74,10 +103,6 @@ class Card {
         this.isHidden = true;
     }
 
-    showValue () {
-        console.log(this.value);
-    }
-
     generateValue () {
        return Math.floor(Math.random() * 5);
     }
@@ -86,18 +111,17 @@ class Card {
         const card = document.createElement('div');
         card.dataset.id = this.id;
         card.className = 'cardItem';
-        if(this.isHidden) {
+        if (this.isHidden) {
             card.classList.add('hidden');
         }
         card.innerHTML = this.value;
-
-        console.log({card}, this.id)
         return card;
     }
 
     flipCard () {
         this.isHidden = !this.isHidden;
-        if(this.isHidden) {
+        const card = document.querySelector(`[data-id="${this.id}"]`);
+        if (this.isHidden) {
             card.classList.add('hidden');
         } else {
             card.classList.remove('hidden');
@@ -105,3 +129,10 @@ class Card {
     }
 
 }
+
+{/*
+Bug list: 
+    - errors when clicking on other while game compares two cards
+    - once got 3 cards with same values. Ids are unique
+
+*/}

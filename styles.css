@@ -24,4 +24,5 @@ body {
 
 .hidden {
     background-color: #000;
+    cursor: pointer;
 }
