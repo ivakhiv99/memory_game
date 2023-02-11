@@ -1,10 +1,11 @@
 window.addEventListener('DOMContentLoaded', () => {
-    config = {
-        gridSize: 20
+    defaultGameSettings = {
+        gridSize: 20,
+        columns: 6,
+        rows: 5,
+        timeLimitSeconds: 60,
     }
-    const game = new Game();
-    
-
+    const game = new Game(defaultGameSettings);
 });
 
 
@@ -26,13 +27,24 @@ window.addEventListener('DOMContentLoaded', () => {
 
 class Game {
     inGameCurrently = false;
-    timeLimit = 60;
-    timeLeft = this.timeLimit;
     currentGrid = null;
+    settings = null
 
-    constructor() {
+    constructor({
+        columns,
+        rows,
+        timeLimitSeconds,
+    }) {
+        this.settings = {
+            timeLimit: timeLimitSeconds,
+            columns: columns,
+            rows: rows,
+        }
+
         this.events();
     }
+
+    // updateSettings method? should recive obj with settigns and update 
 
     events () {
         const startBtn = document.getElementById('startButton');
@@ -51,6 +63,10 @@ class Game {
     } 
 
     startGame () {
+        const config = {
+            columns: this.settings.columns,
+            rows: this.settings.rows,
+        }
         this.currentGrid = new Grid(config);
     }
 
@@ -65,9 +81,13 @@ class Grid {
     secondCard = null;
     currentlyComparing = false;
 
-    constructor({gridSize}) {
-        this.maxValue = gridSize/2;
-        this.createGrid(gridSize);
+    constructor({columns, rows}) {
+        console.log(`Grid settings: ${rows} rows & ${columns} columns`);
+        this.columns = columns;
+        this.rows = rows;
+        this.maxCardValue = (rows*columns)/2;
+
+        this.createGrid(rows*columns);
         this.renderGrid();
         this.events();
 
@@ -77,7 +97,7 @@ class Grid {
         const uniqueCards = [];
 
         const createUniqueCard = () => {
-            const card = new Card(this.maxValue);
+            const card = new Card(this.maxCardValue);
             if (!uniqueCards.find((item) => item.value === card.value)) {
                 uniqueCards.push(card);
             } else {
@@ -91,7 +111,7 @@ class Grid {
 
         const duplicates = []
         uniqueCards.forEach(uniqueCard => {
-            duplicates.push(new Card(this.maxValue, uniqueCard.value))
+            duplicates.push(new Card(this.maxCardValue, uniqueCard.value))
         });
 
         this.grid.push(...uniqueCards, ...duplicates);
@@ -103,17 +123,26 @@ class Grid {
     renderGrid(reDraw) {
         const gridContainer = document.getElementById('gridContainer');
 
-        if(reDraw) {
+        if (reDraw) {
             while(gridContainer.firstChild) {
                 gridContainer.removeChild(gridContainer.lastChild);
             }
             this.grid = [];
-            this.createGrid(this.maxValue*2);
+            this.createGrid(this.maxCardValue*2);
         }
-        this.grid.forEach(cardItem => {
-            const card = cardItem.renderCard();
-            gridContainer.appendChild(card);
-        });
+
+
+        let itemIndex = 0;
+        for (let r = 0; r < this.rows; r++) {
+            const row = document.createElement('div'); 
+
+            for (let c = 0; c < this.columns; c++) {
+                const card = this.grid[itemIndex].renderCard();
+                row.appendChild(card);
+                itemIndex ++;
+            }
+            gridContainer.appendChild(row);
+        }
     }
 
     events () {
@@ -163,7 +192,6 @@ class Grid {
     }
 
 }
-
 
 class Card {
     constructor(maxValue, value) {

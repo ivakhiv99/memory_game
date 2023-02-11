@@ -11,14 +11,18 @@ body {
 
 /* GRID RELATED STYLES */
 #gridContainer {
-
     margin: 0 auto;
     display: flex;
+    /* flex-direction: column; */
     flex-wrap: wrap;
     justify-content: center;
     align-content: center;
     width: 300px;
     height: 800px;
+}
+
+#gridContainer > div {
+    display: flex;
 }
 
 .cardItem {
@@ -77,4 +81,21 @@ button:active {
     color: #000;
     border: #000 solid 1px;
 }
+
+#gameSettings {
+    display: flex;
+    flex-direction: column;
+}
+
+input {
+    width: 200px;
+    height: 50px;
+    font-size: 18px;
+    margin-bottom: 20px;
+    padding: 0 20px;
+    border: none;
+    outline: none;
+}
 /* ================== */
+
+
