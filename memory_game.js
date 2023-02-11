@@ -2,10 +2,62 @@ window.addEventListener('DOMContentLoaded', () => {
     config = {
         gridSize: 20
     }
-    const grid = new Grid(config);
+    const game = new Game();
+    
 
 });
 
+
+{/*
+    Game TODO:
+        - Show victory modal when game is won
+            + Detect victory 
+        - Show victory modal when game is lost due to timeout
+            + Show time left 
+            + Update timer
+            + Pause timer when mouse is outside of game container
+        - Add form for game settings
+            + Let user configure time limit 
+            + Let user configure width and hight of game container
+            + Let user configure number of rows and columns 
+            + Let user select theme 
+
+*/}
+
+class Game {
+    inGameCurrently = false;
+    timeLimit = 60;
+    timeLeft = this.timeLimit;
+    currentGrid = null;
+
+    constructor() {
+        this.events();
+    }
+
+    events () {
+        const startBtn = document.getElementById('startButton');
+        startBtn.addEventListener('click', () => {
+            if (this.inGameCurrently) {
+                this.restartGame();
+
+            } else {
+                const gridContainer = document.getElementById('gridContainer');
+                gridContainer.classList.remove('disabled');
+                this.startGame();
+                this.inGameCurrently = true;
+                startBtn.innerHTML = 'restart';
+            }
+        });
+    } 
+
+    startGame () {
+        this.currentGrid = new Grid(config);
+    }
+
+    restartGame () {
+        this.currentGrid.renderGrid(true)
+    }
+}
 
 class Grid {
     grid = [];
@@ -17,7 +69,6 @@ class Grid {
         this.maxValue = gridSize/2;
         this.createGrid(gridSize);
         this.renderGrid();
-        console.log(this.grid);
         this.events();
 
     }
@@ -47,8 +98,18 @@ class Grid {
         this.grid.sort(() => Math.random() - 0.5);
     }
 
-    renderGrid() {
+
+    //TODO: play some animation when grid is loaded
+    renderGrid(reDraw) {
         const gridContainer = document.getElementById('gridContainer');
+
+        if(reDraw) {
+            while(gridContainer.firstChild) {
+                gridContainer.removeChild(gridContainer.lastChild);
+            }
+            this.grid = [];
+            this.createGrid(this.maxValue*2);
+        }
         this.grid.forEach(cardItem => {
             const card = cardItem.renderCard();
             gridContainer.appendChild(card);
