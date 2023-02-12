@@ -8,6 +8,15 @@ window.addEventListener('DOMContentLoaded', () => {
     const gameSettingsForm = new GameSettings(game);
 });
 
+{/*
+    Game TODO:
+        - Show victory modal when game is won
+            + Detect victory 
+        - Add form for game settings
+            + Let user configure width and hight of game container
+            + Let user select theme 
+*/}
+
 
 const hideDOMelements = (elements) => {
     elements.forEach(element => {
@@ -26,17 +35,6 @@ const showDOMelements = (elements) => {
 }
 
 
-{/*
-    Game TODO:
-        - Show victory modal when game is won
-            + Detect victory 
-        - Show victory modal when game is lost due to timeout
-            + Handle timeout event
-        - Add form for game settings
-            + Let user configure width and hight of game container
-            + Let user select theme 
-*/}
-
 class Game {
     inGameCurrently = false;
     currentGrid = null;
@@ -53,25 +51,73 @@ class Game {
             columns: columns,
             rows: rows,
         }
-
+        this.getHTMLObjects();
         this.events();
     }
 
-    events() {
+    getHTMLObjects() {
         const startBtn = document.getElementById('startButton');
         const restartBtn = document.getElementById('restartButton');
         const exitButton = document.getElementById('exitButton');
         const gridContainer = document.getElementById('gridContainer');
         const gameSettings = document.getElementById('gameSettings');
         const timer = document.getElementById('timer'); 
+        const endGameModal = document.getElementById('endGameModal');
+        const playAgainButton = document.getElementById('playAgainButton');
+        const exitToMenuButton = document.getElementById('exitToMenuButton');
+        const modalTitle = document.querySelector("#endGameModal>h2");
+        const modalText = document.querySelector("#endGameModal>p");
 
-        //TODO: start game logic needs refactoring
+        this.htmlObjects = {
+            startBtn,
+            restartBtn,
+            exitButton,
+            gridContainer,
+            gameSettings,
+            timer,
+            endGameModal,
+            playAgainButton,
+            exitToMenuButton,
+            modalTitle,
+            modalText,
+        }
+    }
+
+    events() {
+        const {
+            startBtn,
+            restartBtn,
+            exitButton,
+            gridContainer,
+            gameSettings,
+            timer,
+            playAgainButton,
+            exitToMenuButton    
+        } = this.htmlObjects;
+
         restartBtn.addEventListener('click', () => {
             this.restartGame();
         });
 
         exitButton.addEventListener('click', () => {
             hideDOMelements([exitButton, gridContainer, timer, restartBtn]);
+            showDOMelements([startBtn, gameSettings]);
+            this.inGameCurrently = false;
+            this.exitGame();
+        });
+        
+        document.addEventListener('timeout', () => {
+            this.showGameOver();
+        });
+
+        playAgainButton.addEventListener('click', () => {
+            hideDOMelements([endGameModal]);
+            this.restartGame();
+            this.gameTimer.startTimer();
+        });
+
+        exitToMenuButton.addEventListener('click', () => {
+            hideDOMelements([endGameModal, exitButton, gridContainer, timer, restartBtn]);
             showDOMelements([startBtn, gameSettings]);
             this.inGameCurrently = false;
             this.exitGame();
@@ -84,12 +130,14 @@ class Game {
     }
 
     startGame() {
-        const restartBtn = document.getElementById('restartButton');
-        const exitButton = document.getElementById('exitButton');
-        const gridContainer = document.getElementById('gridContainer');
-        const gameSettings = document.getElementById('gameSettings');
-        const timer = document.getElementById('timer'); 
-        
+        const {
+            restartBtn,
+            exitButton,
+            gridContainer,
+            gameSettings,
+            timer,
+        } = this.htmlObjects;
+
         hideDOMelements([gameSettings]);
         showDOMelements([gridContainer, exitButton, timer, restartBtn]);
 
@@ -112,6 +160,28 @@ class Game {
         this.currentGrid.renderGrid(true);
         this.gameTimer.resetTimer();
     }
+
+    showGameOver() {
+        const {
+            endGameModal,
+            playAgainButton,
+            exitToMenuButton,
+            exitButton,
+            gridContainer,
+            timer,
+            restartBtn,
+            startBtn,
+            gameSettings,
+            modalTitle,
+            modalText,
+        } = this.htmlObjects;
+
+        modalTitle.innerHTML = 'Defeat';
+        modalText.innerHTML = 'You can try again or exit and change game settings';
+        playAgainButton.innerHTML = 'try again';
+
+        showDOMelements([endGameModal]);
+    }
 }
 
 class GameSettings {
@@ -121,17 +191,34 @@ class GameSettings {
 
     constructor(game) {
         this.game = game;
+        this.getHTMLObjects();
         this.events();
     }
 
-    events() {
+    getHTMLObjects() {
         const startBtn = document.getElementById('startButton');
-        const rowsInput = document.querySelector('input[name="rows"]')
-        const columnsInput = document.querySelector('input[name="columns"]')
+        const rowsInput = document.querySelector('input[name="rows"]');
+        const columnsInput = document.querySelector('input[name="columns"]');
+        const timeLimitInput = document.getElementById('timeLimit');
+        const timeLimitLabel = document.querySelector('label[for="timeLimit"]');
         
-        const timeLimitInput = document.getElementById('timeLimit')
-        const timeLimitLabel = document.querySelector('label[for="timeLimit"]')
+        this.htmlObjects = {
+            startBtn,
+            rowsInput,
+            columnsInput,
+            timeLimitInput,
+            timeLimitLabel,
+        }
+    }
 
+    events() {
+        const {
+            startBtn,
+            rowsInput,
+            columnsInput,
+            timeLimitInput,
+            timeLimitLabel,
+        } = this.htmlObjects;
 
         rowsInput.addEventListener('input', (e) => {
             this.rowsNumberSelected = e.target.value;
@@ -159,26 +246,7 @@ class GameSettings {
             rows: this.columnsNumberSelected,
         });
     }
-
-
-
 }
-
-// class Form {
-//     rowsAvailable
-//     columbsAvailable
-//     rowsNumberSelected
-//     columnsNumberSelected
-//     timeLimit
-
-//     constructor()
-
-//     calculateAvailable()
-//     updateAvailableRows()
-//     updateAvailableColumns()
-
-//     updateSettings()
-// }
 
 class Timer {
     timeLimit;
@@ -188,17 +256,33 @@ class Timer {
     constructor(timeLimit) {
         this.timeLimit = timeLimit;
         this.timeLeft = timeLimit;
+        this.getHTMLObjects();
         this.startTimer();
         this.handleAutoPause();
     }
 
-    startTimer() {
+    getHTMLObjects() {
         const timer = document.getElementById('timer'); 
+        const gameZone = document.getElementById('gameContainer');
+
+
+        this.htmlObjects = {
+            timer,
+            gameZone
+        }
+    }
+
+    startTimer() {
+        const { timer } = this.htmlObjects;
+        timer.innerHTML = this.timeLeft;
+        this.pause = false;
 
         this.timerId = setInterval(() => {
             timer.innerHTML = this.timeLeft;
+
             if(this.timeLeft > 0) {
                 if (!this.pause) {
+                    console.log('timer tick', this.timeLeft, this.timerId);
                     this.timeLeft--;
                 }
             } else {
@@ -208,14 +292,15 @@ class Timer {
     }
 
     handleTimeout() {
-        alert('timeout');
+        const { timer } = this.htmlObjects;
+
+        document.dispatchEvent(new Event('timeout'));
         this.removeTimer();
-        const timer = document.getElementById('timer'); 
         timer.innerHTML = 0;
     }
 
     handleAutoPause() {
-        const gameZone = document.getElementById('gameContainer');
+        const { gameZone } = this.htmlObjects;
         gameZone.addEventListener('mouseout', () => this.pause = true);
         gameZone.addEventListener('mouseover', () => this.pause = false);
     }
@@ -227,14 +312,14 @@ class Timer {
     removeTimer() {
         this.timeLeft = this.timeLimit;
         clearInterval(this.timerId);
-        const timer = document.getElementById('timer'); 
-        timer.innerHTML = '';
+        this.pause = true;
     }
 
     resetTimer() {
+        const { timer } = this.htmlObjects;
         this.timeLeft = this.timeLimit;
-        const timer = document.getElementById('timer'); 
-        timer.innerHTML = this.timeLimit;
+        timer.innerHTML = this.timeLeft;
+        this.pause = false;
     }
 }
 
@@ -248,11 +333,20 @@ class Grid {
         this.columns = columns;
         this.rows = rows;
         this.maxCardValue = (rows*columns)/2;
-
+        this.getHTMLObjects();
         this.createGrid(rows*columns);
         this.renderGrid();
         this.events();
 
+    }
+
+
+    getHTMLObjects() {
+        const gridContainer = document.getElementById('gridContainer');
+
+        this.htmlObjects = {
+            gridContainer
+        }
     }
 
     createGrid(size) {
@@ -283,7 +377,7 @@ class Grid {
 
     //TODO: play some animation when grid is loaded
     renderGrid(reRender) {
-        const gridContainer = document.getElementById('gridContainer');
+        const { gridContainer } = this.htmlObjects;
 
         if (reRender) {
             this.clearGrid();
@@ -303,7 +397,8 @@ class Grid {
     }
 
     clearGrid() {
-        const gridContainer = document.getElementById('gridContainer');
+        const { gridContainer } = this.htmlObjects;
+
         while(gridContainer.firstChild) {
             gridContainer.removeChild(gridContainer.lastChild);
         }
@@ -395,6 +490,22 @@ class Card {
 
 {/*
 Bug list: 
-  
+   - timer issues
 
 */}
+
+// better class GameSettings {
+//     rowsAvailable
+//     columbsAvailable
+//     rowsNumberSelected
+//     columnsNumberSelected
+//     timeLimit
+
+//     constructor()
+
+//     calculateAvailable()
+//     updateAvailableRows()
+//     updateAvailableColumns()
+
+//     updateSettings()
+// }

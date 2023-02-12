@@ -3,6 +3,7 @@ body {
     position: relative;
     margin: 0;
     height: 100vh;
+    /* filter: blur(4px); */
 }
 
 .hidden {
@@ -128,6 +129,38 @@ label {
     text-transform: uppercase;
     letter-spacing: 2px;
     font-family: Arial, Helvetica, sans-serif;
+    margin: 0 auto;
+}
+
+#endGameModal {
+    position: absolute;
+    top: 50%;
+    display: flex;
+    flex-direction: column;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    min-width: 420px;
+    height: 163px;
+    padding: 20px 50px;
+    background-color: #d3d3d3;
+    border-radius: 25px;
+    border: #000 solid 1px;
+    text-align: center;
+    justify-content: center;
+}
+
+#endGameModal > h2 {
+    font-family: Arial, Helvetica, sans-serif;
+    letter-spacing: 2px;
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0 auto 20px auto;
+}
+
+#endGameModal > p {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 18px;
     margin: 0 auto;
 }
 /* ================== */
