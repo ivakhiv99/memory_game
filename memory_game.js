@@ -107,13 +107,20 @@ class Game {
         });
         
         document.addEventListener('timeout', () => {
-            this.showGameOver();
+            this.showGameOver(false);
+        });
+
+        document.addEventListener('victory', () => {
+            this.gameTimer.stopTimer();
+            this.showGameOver(true);
         });
 
         playAgainButton.addEventListener('click', () => {
             hideDOMelements([endGameModal]);
             this.restartGame();
             this.gameTimer.startTimer();
+            restartBtn.disabled = false;
+            exitButton.disabled = false;
         });
 
         exitToMenuButton.addEventListener('click', () => {
@@ -121,6 +128,8 @@ class Game {
             showDOMelements([startBtn, gameSettings]);
             this.inGameCurrently = false;
             this.exitGame();
+            restartBtn.disabled = false;
+            exitButton.disabled = false;
         });
     } 
 
@@ -161,24 +170,29 @@ class Game {
         this.gameTimer.resetTimer();
     }
 
-    showGameOver() {
+    showGameOver(victory) {
         const {
             endGameModal,
             playAgainButton,
-            exitToMenuButton,
             exitButton,
-            gridContainer,
-            timer,
             restartBtn,
-            startBtn,
-            gameSettings,
             modalTitle,
             modalText,
         } = this.htmlObjects;
 
-        modalTitle.innerHTML = 'Defeat';
-        modalText.innerHTML = 'You can try again or exit and change game settings';
-        playAgainButton.innerHTML = 'try again';
+        restartBtn.disabled = true;
+        exitButton.disabled = true;
+
+        if (victory) {
+            modalTitle.innerHTML = 'You won!';
+            modalText.innerHTML = 'You can play again or exit and change game settings';
+            playAgainButton.innerHTML = 'play again';
+        } else {
+            modalTitle.innerHTML = 'Game Over';
+            modalText.innerHTML = 'You can try again or exit and change game settings';
+            playAgainButton.innerHTML = 'try again';
+        }
+
 
         showDOMelements([endGameModal]);
     }
@@ -275,14 +289,10 @@ class Timer {
     startTimer() {
         const { timer } = this.htmlObjects;
         timer.innerHTML = this.timeLeft;
-        this.pause = false;
-
         this.timerId = setInterval(() => {
             timer.innerHTML = this.timeLeft;
-
             if(this.timeLeft > 0) {
                 if (!this.pause) {
-                    console.log('timer tick', this.timeLeft, this.timerId);
                     this.timeLeft--;
                 }
             } else {
@@ -305,7 +315,8 @@ class Timer {
         gameZone.addEventListener('mouseover', () => this.pause = false);
     }
 
-    pauseTimer() {
+    stopTimer() {
+        clearInterval(this.timerId);
         this.pause = true;
     }
 
@@ -328,6 +339,7 @@ class Grid {
     firstCard = null;
     secondCard = null;
     currentlyComparing = false;
+    cardPairsLeft = this.grid.length/2;
 
     constructor({columns, rows}) {
         this.columns = columns;
@@ -337,7 +349,6 @@ class Grid {
         this.createGrid(rows*columns);
         this.renderGrid();
         this.events();
-
     }
 
 
@@ -372,6 +383,7 @@ class Grid {
 
         this.grid.push(...uniqueCards, ...duplicates);
         this.grid.sort(() => Math.random() - 0.5);
+        this.cardPairsLeft = this.grid.length/2;
     }
 
 
@@ -444,11 +456,15 @@ class Grid {
         if (success) {
             this.firstCard = null;
             this.secondCard = null;
+            this.cardPairsLeft = this.cardPairsLeft - 1;
         } else {
             this.firstCard.flipCard();
             this.secondCard.flipCard();
             this.firstCard = null;
             this.secondCard = null;
+        }
+        if(this.cardPairsLeft === 0) {
+            document.dispatchEvent(new Event('victory'))
         }
     }
 

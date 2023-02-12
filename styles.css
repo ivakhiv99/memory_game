@@ -93,6 +93,11 @@ button:active {
     border: #000 solid 1px;
 }
 
+button:disabled {
+    color: #d3d3d3;
+    border: #d3d3d3 solid 1px;
+}
+
 #gameSettings {
     display: flex;
     flex-direction: column;
