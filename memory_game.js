@@ -236,10 +236,12 @@ class GameSettings {
 
         rowsInput.addEventListener('input', (e) => {
             this.rowsNumberSelected = e.target.value;
+            this.validate();
         });
 
         columnsInput.addEventListener('input', (e) => {
             this.columnsNumberSelected = e.target.value;
+            this.validate();
         });            
 
         startBtn.addEventListener('click', () => {
@@ -251,6 +253,20 @@ class GameSettings {
             timeLimitLabel.innerHTML = `You'll have ${e.target.value} seconds`;
             this.timeLimit = e.target.value;
         })
+    }
+
+    validate() {
+        const { startBtn } = this.htmlObjects;
+        const isEven = (this.columnsNumberSelected * this.rowsNumberSelected)%2 == 0; 
+        const correctNumberOfRows = this.rowsNumberSelected > 0 && this.rowsNumberSelected <= 10;
+        const correctNumberOfColumns = this.columnsNumberSelected > 0 && this.columnsNumberSelected <= 10;
+        
+        console.log({correctNumberOfRows ,correctNumberOfColumns,isEven})
+        if (!correctNumberOfRows || !correctNumberOfColumns|| !isEven) {
+            startBtn.disabled = true;
+        } else {
+            startBtn.disabled = false;
+        }
     }
 
     updateSettings() {
