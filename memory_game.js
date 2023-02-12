@@ -9,6 +9,23 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
+const hideDOMelements = (elements) => {
+    elements.forEach(element => {
+        if(element instanceof HTMLElement) {
+            element.classList.add('hidden');
+        } else throw new Error('hideDOMelements function should accept only HTMLElements ');
+    });
+}
+
+const showDOMelements = (elements) => {
+    elements.forEach(element => {
+        if(element instanceof HTMLElement) {
+            element.classList.remove('hidden');
+        } else throw new Error('showDOMelements function should accept only HTMLElements ');
+    });
+}
+
+
 {/*
     Game TODO:
         - Show victory modal when game is won
@@ -54,12 +71,8 @@ class Game {
         });
 
         exitButton.addEventListener('click', () => {
-            exitButton.classList.add('hidden');
-            gridContainer.classList.add('hidden');
-            timer.classList.add('hidden');
-            restartBtn.classList.add('hidden');
-            startBtn.classList.remove('hidden');
-            gameSettings.classList.remove('hidden');
+            hideDOMelements([exitButton, gridContainer, timer, restartBtn]);
+            showDOMelements([startBtn, gameSettings]);
             this.inGameCurrently = false;
             this.exitGame();
         });
@@ -77,11 +90,8 @@ class Game {
         const gameSettings = document.getElementById('gameSettings');
         const timer = document.getElementById('timer'); 
         
-        gameSettings.classList.add('hidden');
-        gridContainer.classList.remove('hidden');
-        exitButton.classList.remove('hidden');
-        timer.classList.remove('hidden');
-        restartBtn.classList.remove('hidden');
+        hideDOMelements([gameSettings]);
+        showDOMelements([gridContainer, exitButton, timer, restartBtn]);
 
         this.inGameCurrently = true;
 
@@ -132,7 +142,7 @@ class GameSettings {
         });            
 
         startBtn.addEventListener('click', () => {
-            startBtn.classList.add('hidden');
+            hideDOMelements([startBtn]);
             this.updateSettings();
         });
 
