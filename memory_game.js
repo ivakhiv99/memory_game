@@ -1,11 +1,11 @@
 window.addEventListener('DOMContentLoaded', () => {
     defaultGameSettings = {
-        gridSize: 20,
         columns: 6,
         rows: 5,
         timeLimitSeconds: 60,
     }
     const game = new Game(defaultGameSettings);
+    const gameSettingsForm = new GameSettings(game);
 });
 
 
@@ -14,21 +14,17 @@ window.addEventListener('DOMContentLoaded', () => {
         - Show victory modal when game is won
             + Detect victory 
         - Show victory modal when game is lost due to timeout
-            + Show time left 
-            + Update timer
-            + Pause timer when mouse is outside of game container
+            + Handle timeout event
         - Add form for game settings
-            + Let user configure time limit 
             + Let user configure width and hight of game container
-            + Let user configure number of rows and columns 
             + Let user select theme 
-
 */}
 
 class Game {
     inGameCurrently = false;
     currentGrid = null;
     settings = null
+    gameTimer = null;
 
     constructor({
         columns,
@@ -44,34 +40,191 @@ class Game {
         this.events();
     }
 
-    // updateSettings method? should recive obj with settigns and update 
-
-    events () {
+    events() {
         const startBtn = document.getElementById('startButton');
-        startBtn.addEventListener('click', () => {
-            if (this.inGameCurrently) {
-                this.restartGame();
+        const restartBtn = document.getElementById('restartButton');
+        const exitButton = document.getElementById('exitButton');
+        const gridContainer = document.getElementById('gridContainer');
+        const gameSettings = document.getElementById('gameSettings');
+        const timer = document.getElementById('timer'); 
 
-            } else {
-                const gridContainer = document.getElementById('gridContainer');
-                gridContainer.classList.remove('disabled');
-                this.startGame();
-                this.inGameCurrently = true;
-                startBtn.innerHTML = 'restart';
-            }
+        //TODO: start game logic needs refactoring
+        restartBtn.addEventListener('click', () => {
+            this.restartGame();
+        });
+
+        exitButton.addEventListener('click', () => {
+            exitButton.classList.add('hidden');
+            gridContainer.classList.add('hidden');
+            timer.classList.add('hidden');
+            restartBtn.classList.add('hidden');
+            startBtn.classList.remove('hidden');
+            gameSettings.classList.remove('hidden');
+            this.inGameCurrently = false;
+            this.exitGame();
         });
     } 
 
-    startGame () {
-        const config = {
+    updateSettings(settings) {
+        this.settings = settings;
+        this.startGame();
+    }
+
+    startGame() {
+        const restartBtn = document.getElementById('restartButton');
+        const exitButton = document.getElementById('exitButton');
+        const gridContainer = document.getElementById('gridContainer');
+        const gameSettings = document.getElementById('gameSettings');
+        const timer = document.getElementById('timer'); 
+        
+        gameSettings.classList.add('hidden');
+        gridContainer.classList.remove('hidden');
+        exitButton.classList.remove('hidden');
+        timer.classList.remove('hidden');
+        restartBtn.classList.remove('hidden');
+
+        this.inGameCurrently = true;
+
+        const gridConfig = {
             columns: this.settings.columns,
             rows: this.settings.rows,
         }
-        this.currentGrid = new Grid(config);
+        this.currentGrid = new Grid(gridConfig);
+        this.gameTimer = new Timer(this.settings.timeLimit);
     }
 
-    restartGame () {
-        this.currentGrid.renderGrid(true)
+    exitGame() {
+        this.currentGrid.clearGrid(true);
+        this.gameTimer.removeTimer();
+    }
+
+    restartGame() {
+        this.currentGrid.renderGrid(true);
+        this.gameTimer.resetTimer();
+    }
+}
+
+class GameSettings {
+    rowsNumberSelected = 2;
+    columnsNumberSelected = 2;
+    timeLimit = 60;
+
+    constructor(game) {
+        this.game = game;
+        this.events();
+    }
+
+    events() {
+        const startBtn = document.getElementById('startButton');
+        const rowsInput = document.querySelector('input[name="rows"]')
+        const columnsInput = document.querySelector('input[name="columns"]')
+        
+        const timeLimitInput = document.getElementById('timeLimit')
+        const timeLimitLabel = document.querySelector('label[for="timeLimit"]')
+
+
+        rowsInput.addEventListener('input', (e) => {
+            this.rowsNumberSelected = e.target.value;
+        });
+
+        columnsInput.addEventListener('input', (e) => {
+            this.columnsNumberSelected = e.target.value;
+        });            
+
+        startBtn.addEventListener('click', () => {
+            startBtn.classList.add('hidden');
+            this.updateSettings();
+        });
+
+        timeLimitInput.addEventListener('input', (e) => {
+            timeLimitLabel.innerHTML = `You'll have ${e.target.value} seconds`;
+            this.timeLimit = e.target.value;
+        })
+    }
+
+    updateSettings() {
+        this.game.updateSettings({
+            timeLimit: this.timeLimit,
+            columns: this.rowsNumberSelected,
+            rows: this.columnsNumberSelected,
+        });
+    }
+
+
+
+}
+
+// class Form {
+//     rowsAvailable
+//     columbsAvailable
+//     rowsNumberSelected
+//     columnsNumberSelected
+//     timeLimit
+
+//     constructor()
+
+//     calculateAvailable()
+//     updateAvailableRows()
+//     updateAvailableColumns()
+
+//     updateSettings()
+// }
+
+class Timer {
+    timeLimit;
+    timeLeft;
+    pause = false;
+
+    constructor(timeLimit) {
+        this.timeLimit = timeLimit;
+        this.timeLeft = timeLimit;
+        this.startTimer();
+        this.handleAutoPause();
+    }
+
+    startTimer() {
+        const timer = document.getElementById('timer'); 
+
+        this.timerId = setInterval(() => {
+            timer.innerHTML = this.timeLeft;
+            if(this.timeLeft > 0) {
+                if (!this.pause) {
+                    this.timeLeft--;
+                }
+            } else {
+                this.handleTimeout();
+            }
+        }, 1000);
+    }
+
+    handleTimeout() {
+        alert('timeout');
+        this.removeTimer();
+        const timer = document.getElementById('timer'); 
+        timer.innerHTML = 0;
+    }
+
+    handleAutoPause() {
+        const gameZone = document.getElementById('gameContainer');
+        gameZone.addEventListener('mouseout', () => this.pause = true);
+        gameZone.addEventListener('mouseover', () => this.pause = false);
+    }
+
+    pauseTimer() {
+        this.pause = true;
+    }
+
+    removeTimer() {
+        this.timeLeft = this.timeLimit;
+        clearInterval(this.timerId);
+        const timer = document.getElementById('timer'); 
+        timer.innerHTML = '';
+    }
+
+    resetTimer() {
+        this.timeLeft = this.timeLimit;
+        const timer = document.getElementById('timer'); 
+        timer.innerHTML = this.timeLimit;
     }
 }
 
@@ -82,7 +235,6 @@ class Grid {
     currentlyComparing = false;
 
     constructor({columns, rows}) {
-        console.log(`Grid settings: ${rows} rows & ${columns} columns`);
         this.columns = columns;
         this.rows = rows;
         this.maxCardValue = (rows*columns)/2;
@@ -120,17 +272,12 @@ class Grid {
 
 
     //TODO: play some animation when grid is loaded
-    renderGrid(reDraw) {
+    renderGrid(reRender) {
         const gridContainer = document.getElementById('gridContainer');
 
-        if (reDraw) {
-            while(gridContainer.firstChild) {
-                gridContainer.removeChild(gridContainer.lastChild);
-            }
-            this.grid = [];
-            this.createGrid(this.maxCardValue*2);
+        if (reRender) {
+            this.clearGrid();
         }
-
 
         let itemIndex = 0;
         for (let r = 0; r < this.rows; r++) {
@@ -143,6 +290,15 @@ class Grid {
             }
             gridContainer.appendChild(row);
         }
+    }
+
+    clearGrid() {
+        const gridContainer = document.getElementById('gridContainer');
+        while(gridContainer.firstChild) {
+            gridContainer.removeChild(gridContainer.lastChild);
+        }
+        this.grid = [];
+        this.createGrid(this.maxCardValue*2);
     }
 
     events () {
@@ -209,7 +365,7 @@ class Card {
         card.dataset.id = this.id;
         card.className = 'cardItem';
         if (this.isHidden) {
-            card.classList.add('hidden');
+            card.classList.add('hiddenCard');
         }
         card.innerHTML = this.value;
         return card;
@@ -219,9 +375,9 @@ class Card {
         this.isHidden = !this.isHidden;
         const card = document.querySelector(`[data-id="${this.id}"]`);
         if (this.isHidden) {
-            card.classList.add('hidden');
+            card.classList.add('hiddenCard');
         } else {
-            card.classList.remove('hidden');
+            card.classList.remove('hiddenCard');
         }
     }
 
