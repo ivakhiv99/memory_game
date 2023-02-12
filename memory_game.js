@@ -10,8 +10,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 {/*
     Game TODO:
-        - Show victory modal when game is won
-            + Detect victory 
         - Add form for game settings
             + Let user configure width and hight of game container
             + Let user select theme 
@@ -261,7 +259,6 @@ class GameSettings {
         const correctNumberOfRows = this.rowsNumberSelected > 0 && this.rowsNumberSelected <= 10;
         const correctNumberOfColumns = this.columnsNumberSelected > 0 && this.columnsNumberSelected <= 10;
         
-        console.log({correctNumberOfRows ,correctNumberOfColumns,isEven})
         if (!correctNumberOfRows || !correctNumberOfColumns|| !isEven) {
             startBtn.disabled = true;
         } else {
@@ -436,7 +433,7 @@ class Grid {
 
     events () {
         document.addEventListener('click', ({target}) => {
-            if (target.dataset.id && !this.currentlyComparing) {
+            if (target.dataset.id && !this.currentlyComparing && target.classList.contains('hiddenCard')) {
                 const clickedCard = this.grid.find(card => target.dataset.id == card.id);
                 if (!this.firstCard) {
                     this.firstCard = clickedCard;
@@ -452,20 +449,66 @@ class Grid {
 
     compareCards() {
         if (this.firstCard.value === this.secondCard.value) {
-            //TODO: play success animation
+            this.animateMatch();
             this.currentlyComparing = true;
             setTimeout(() => {
                 this.resetComparison(true);
                 this.currentlyComparing = false;
             }, 700); 
         } else {
-            //TODO: play failure animation
+            this.animateMismatch();
             this.currentlyComparing = true;
             setTimeout(() => {
                 this.resetComparison(false);
                 this.currentlyComparing = false;
-            }, 700); 
+            }, 1050); 
         }
+    }
+
+    animateMismatch() {
+        const rollLeft = {
+            value: 10,
+            duration: 350,
+            easing: 'spring(1, 80, 10, 0)',
+        };
+        const rollRight = {
+            value: -10,
+            duration: 350,
+            easing: 'spring(1, 80, 10, 0)',
+        };
+        const rollBack = {
+            value: 0,
+            duration: 350,
+            easing: 'spring(1, 80, 10, 0)',
+        };
+
+        anime({
+            targets: document.querySelector(`[data-id="${this.firstCard.id}"]`),
+            borderRadius: ['0%', '20%', '0%'],
+            // backgroundColor: ['#008080', '#FF6347', '#000000'],
+            duration: 1050,
+            rotate: [rollLeft, rollRight, rollBack ],
+        });
+        anime({
+            targets: document.querySelector(`[data-id="${this.secondCard.id}"]`),
+            borderRadius: ['0%', '20%', '0%'],
+            // backgroundColor: ['#008080', '#FF6347', '#000000'],
+            duration: 1050,
+            rotate: [rollRight, rollLeft , rollBack ],
+        });
+    }
+
+    animateMatch() {
+        anime({
+            targets: [
+                document.querySelector(`[data-id="${this.firstCard.id}"]`),
+                document.querySelector(`[data-id="${this.secondCard.id}"]`),
+            ],
+            scale: [1.2, 1],
+            borderRadius: ['20%', '0%'],
+            easing: 'cubicBezier(.5, .05, .1, .3)',
+            duration: 1050,
+        })
     }
 
     resetComparison (success) {
@@ -504,7 +547,6 @@ class Card {
         if (this.isHidden) {
             card.classList.add('hiddenCard');
         }
-        card.innerHTML = this.value;
         return card;
     }
 
@@ -513,18 +555,14 @@ class Card {
         const card = document.querySelector(`[data-id="${this.id}"]`);
         if (this.isHidden) {
             card.classList.add('hiddenCard');
+            card.innerHTML = '';
         } else {
             card.classList.remove('hiddenCard');
+            card.innerHTML = this.value;
         }
     }
 
 }
-
-{/*
-Bug list: 
-   - timer issues
-
-*/}
 
 // better class GameSettings {
 //     rowsAvailable
