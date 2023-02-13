@@ -1,0 +1,13 @@
+:root {
+    --primary-background-color: #24292f;
+    --primary-text-color: #f1f1f1;
+    --primary-disabled-color: #24292f;
+    --primary-gamezone-background-color: #0f0f0f;
+    --primary-button-background-color: #24292f;
+    --primary-active-button-background-color: #f1f1f1;
+    --primary-button-text-color: #f1f1f1;
+    --primary-active-button-text-color: #24292f;
+    --primary-input-border-style: none;
+    --primary-disabled-button-background-color: #f1f1f1;
+    --primary-hidden-card-background-color: #f1f1f1;
+}
