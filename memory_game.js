@@ -218,7 +218,17 @@ class GameSettings {
         const timeLimitLabel = document.querySelector('label[for="timeLimit"]');
         const gameSettingsString = document.querySelector('#gameSettings>p');
 
+        const themeLink = document.getElementById('themeLink');
+        const lightBtn = document.querySelector('#gameSettings>.buttons>[data-theme="light"]');
+        const darkBtn = document.querySelector('#gameSettings>.buttons>[data-theme="dark"]');
+        const tomatoBtn = document.querySelector('#gameSettings>.buttons>[data-theme="tomato"]');
+
+
         this.htmlObjects = {
+            darkBtn,
+            tomatoBtn,
+            themeLink,
+            lightBtn,
             startBtn,
             rowsInput,
             columnsInput,
@@ -230,12 +240,29 @@ class GameSettings {
 
     events() {
         const {
+            themeLink,
+            darkBtn,
+            tomatoBtn,
+            lightBtn,
             startBtn,
             rowsInput,
             columnsInput,
             timeLimitInput,
             timeLimitLabel,
         } = this.htmlObjects;
+
+        lightBtn.addEventListener('click', () => {
+            themeLink.href = 'themes/light.css';
+        });
+
+        darkBtn.addEventListener('click', () => {
+            themeLink.href = 'themes/dark.css';
+        });
+
+        tomatoBtn.addEventListener('click', () => {
+            themeLink.href = 'themes/tomato.css';
+        });
+
 
         rowsInput.addEventListener('input', (e) => {
             this.rowsNumberSelected = e.target.value;
@@ -419,7 +446,6 @@ class Grid {
         }
 
         let itemIndex = 0;
-        console.log(`rows = ${this.rows}, columns = ${this.columns}`)
         for (let r = 0; r < this.rows; r++) {
             const row = document.createElement('div'); 
 
@@ -428,7 +454,6 @@ class Grid {
                 row.appendChild(card);
                 itemIndex ++;
             }
-            console.log(`r = ${r}, `, {row})
             gridContainer.appendChild(row);
         }
     }
