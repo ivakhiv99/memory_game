@@ -197,13 +197,16 @@ class Game {
 }
 
 class GameSettings {
-    rowsNumberSelected = 2;
-    columnsNumberSelected = 2;
+    rowsNumberSelected = 0;
+    columnsNumberSelected = 0;
     timeLimit = 60;
 
     constructor(game) {
         this.game = game;
         this.getHTMLObjects();
+        const { startBtn, gameSettingsString } = this.htmlObjects;
+        startBtn.disabled = true;
+        gameSettingsString.innerHTML = 'please select number of rows and columns';
         this.events();
     }
 
@@ -213,13 +216,15 @@ class GameSettings {
         const columnsInput = document.querySelector('input[name="columns"]');
         const timeLimitInput = document.getElementById('timeLimit');
         const timeLimitLabel = document.querySelector('label[for="timeLimit"]');
-        
+        const gameSettingsString = document.querySelector('#gameSettings>p');
+
         this.htmlObjects = {
             startBtn,
             rowsInput,
             columnsInput,
             timeLimitInput,
             timeLimitLabel,
+            gameSettingsString,
         }
     }
 
@@ -254,11 +259,16 @@ class GameSettings {
     }
 
     validate() {
-        const { startBtn } = this.htmlObjects;
+        const { startBtn, gameSettingsString } = this.htmlObjects;
         const isEven = (this.columnsNumberSelected * this.rowsNumberSelected)%2 == 0; 
         const correctNumberOfRows = this.rowsNumberSelected > 0 && this.rowsNumberSelected <= 10;
         const correctNumberOfColumns = this.columnsNumberSelected > 0 && this.columnsNumberSelected <= 10;
-        
+
+        if(this.rowsNumberSelected && this.columnsNumberSelected) {
+            gameSettingsString.innerHTML = `${this.rowsNumberSelected} rows and ${this.columnsNumberSelected} columns`;
+        } else {
+            gameSettingsString.innerHTML = 'please select number of rows and columns';
+        }
         if (!correctNumberOfRows || !correctNumberOfColumns|| !isEven) {
             startBtn.disabled = true;
         } else {
@@ -269,8 +279,8 @@ class GameSettings {
     updateSettings() {
         this.game.updateSettings({
             timeLimit: this.timeLimit,
-            columns: this.rowsNumberSelected,
-            rows: this.columnsNumberSelected,
+            columns: this.columnsNumberSelected,
+            rows: this.rowsNumberSelected,
         });
     }
 }
@@ -409,6 +419,7 @@ class Grid {
         }
 
         let itemIndex = 0;
+        console.log(`rows = ${this.rows}, columns = ${this.columns}`)
         for (let r = 0; r < this.rows; r++) {
             const row = document.createElement('div'); 
 
@@ -417,6 +428,7 @@ class Grid {
                 row.appendChild(card);
                 itemIndex ++;
             }
+            console.log(`r = ${r}, `, {row})
             gridContainer.appendChild(row);
         }
     }
