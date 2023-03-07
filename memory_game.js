@@ -12,7 +12,16 @@ window.addEventListener('DOMContentLoaded', () => {
     Game TODO:
         - Add form for game settings
             + Let user configure width and hight of game container
-            + Let user select theme 
+            + Let user select theme
+            + Store theme in local storage
+
+*/}
+
+
+{/* 
+    Bug list: 
+        - since tomato theme is loaded as default screen flicks to tobato for a split second before changing to user selected theme
+
 */}
 
 
@@ -204,9 +213,29 @@ class GameSettings {
     constructor(game) {
         this.game = game;
         this.getHTMLObjects();
-        const { startBtn, gameSettingsString } = this.htmlObjects;
+        const { startBtn, gameSettingsString, themeLink } = this.htmlObjects;
         startBtn.disabled = true;
         gameSettingsString.innerHTML = 'please select number of rows and columns';
+        
+        const savedTheme = localStorage.getItem('theme');
+        switch(savedTheme) {
+            case 'light': {
+                themeLink.href = 'themes/light.css';
+                break;
+            }
+            case 'dark': {
+                themeLink.href = 'themes/dark.css';
+                break;
+            }
+
+            case 'tomato': {
+                themeLink.href = 'themes/tomato.css';
+                break;
+            }
+            
+            default: break; 
+        }
+
         this.events();
     }
 
@@ -253,14 +282,17 @@ class GameSettings {
 
         lightBtn.addEventListener('click', () => {
             themeLink.href = 'themes/light.css';
+            this.saveTheme('light');
         });
 
         darkBtn.addEventListener('click', () => {
             themeLink.href = 'themes/dark.css';
+            this.saveTheme('dark');
         });
 
         tomatoBtn.addEventListener('click', () => {
             themeLink.href = 'themes/tomato.css';
+            this.saveTheme('tomato');
         });
 
 
@@ -283,6 +315,10 @@ class GameSettings {
             timeLimitLabel.innerHTML = `You'll have ${e.target.value} seconds`;
             this.timeLimit = e.target.value;
         })
+    }
+
+    saveTheme(theme) {
+        localStorage.setItem('theme', theme);
     }
 
     validate() {
@@ -311,6 +347,12 @@ class GameSettings {
         });
     }
 }
+
+// class PreviewGrid extends Grid {
+//     constructor() {
+//         super();
+//     }
+// }
 
 class Timer {
     timeLimit;
