@@ -12,6 +12,11 @@ body {
 }
 
 /* GRID RELATED STYLES */
+#gridPreview {
+    display: flex;
+    flex-direction: row;
+}
+
 #gridContainer {
     margin: 0 auto;
     display: flex;
@@ -35,6 +40,16 @@ body {
     margin: 5px;
     width: 50px;
     height: 50px;
+}
+
+.previewCardItem {
+    background-color: teal;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 5px 0 0 5px;
+    width: 35px;
+    height: 35px;
 }
 
 .hiddenCard {

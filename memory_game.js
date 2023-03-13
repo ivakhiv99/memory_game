@@ -12,9 +12,11 @@ window.addEventListener('DOMContentLoaded', () => {
     Game TODO:
         - Add form for game settings
             + Let user configure width and hight of game container
-            + Let user select theme
-            + Store theme in local storage
-
+            + Add different game mods: 
+                * classic - (what's currently implemented)
+                * speedruner - remove animation delays, replace timer with a stopwatch
+                * infinite - use 10x10 grid, when 5 pais are matched replace them with newly generated items; give +10s to timer; count score
+            + Add better game setting with preview and nice grid width & height selectors
 */}
 
 
@@ -206,17 +208,24 @@ class Game {
 }
 
 class GameSettings {
-    rowsNumberSelected = 0;
-    columnsNumberSelected = 0;
+    rowsNumberSelected = 4;
+    columnsNumberSelected = 4;
     timeLimit = 60;
 
     constructor(game) {
         this.game = game;
         this.getHTMLObjects();
-        const { startBtn, gameSettingsString, themeLink } = this.htmlObjects;
-        startBtn.disabled = true;
-        gameSettingsString.innerHTML = 'please select number of rows and columns';
+        const { startBtn, themeLink, rowsInput, columnsInput } = this.htmlObjects;
+        rowsInput.value = this.rowsNumberSelected;
+        columnsInput.value = this.columnsNumberSelected;
+        startBtn.disabled = false;
         
+        
+        const previewGrid = new PreviewGrid({
+            columns: this.columnsNumberSelected,
+            rows: this.rowsNumberSelected,
+        });
+
         const savedTheme = localStorage.getItem('theme');
         switch(savedTheme) {
             case 'light': {
@@ -245,7 +254,6 @@ class GameSettings {
         const columnsInput = document.querySelector('input[name="columns"]');
         const timeLimitInput = document.getElementById('timeLimit');
         const timeLimitLabel = document.querySelector('label[for="timeLimit"]');
-        const gameSettingsString = document.querySelector('#gameSettings>p');
 
         const themeLink = document.getElementById('themeLink');
         const lightBtn = document.querySelector('#gameSettings>.buttons>[data-theme="light"]');
@@ -263,7 +271,6 @@ class GameSettings {
             columnsInput,
             timeLimitInput,
             timeLimitLabel,
-            gameSettingsString,
         }
     }
 
@@ -322,16 +329,11 @@ class GameSettings {
     }
 
     validate() {
-        const { startBtn, gameSettingsString } = this.htmlObjects;
+        const { startBtn } = this.htmlObjects;
         const isEven = (this.columnsNumberSelected * this.rowsNumberSelected)%2 == 0; 
         const correctNumberOfRows = this.rowsNumberSelected > 0 && this.rowsNumberSelected <= 10;
         const correctNumberOfColumns = this.columnsNumberSelected > 0 && this.columnsNumberSelected <= 10;
 
-        if(this.rowsNumberSelected && this.columnsNumberSelected) {
-            gameSettingsString.innerHTML = `${this.rowsNumberSelected} rows and ${this.columnsNumberSelected} columns`;
-        } else {
-            gameSettingsString.innerHTML = 'please select number of rows and columns';
-        }
         if (!correctNumberOfRows || !correctNumberOfColumns|| !isEven) {
             startBtn.disabled = true;
         } else {
@@ -348,11 +350,6 @@ class GameSettings {
     }
 }
 
-// class PreviewGrid extends Grid {
-//     constructor() {
-//         super();
-//     }
-// }
 
 class Timer {
     timeLimit;
@@ -483,6 +480,7 @@ class Grid {
     renderGrid(reRender) {
         const { gridContainer } = this.htmlObjects;
 
+        // Do I need reRender?
         if (reRender) {
             this.clearGrid();
         }
@@ -606,6 +604,90 @@ class Grid {
         }
     }
 
+}
+
+// should inherit or extend Grid class
+class PreviewGrid {
+    constructor({columns, rows}) {
+        this.columns = columns;
+        this.rows = rows;
+        this.getHTMLObjects();
+        this.renderGrid();
+        this.events();
+    }
+
+    getHTMLObjects() {
+        const gridPreview = document.getElementById('gridPreview');
+        const rowsInput = document.querySelector('input[name="rows"]');
+        const columnsInput = document.querySelector('input[name="columns"]');
+
+        this.htmlObjects = {
+            gridPreview,
+            rowsInput,
+            columnsInput,
+        };
+    }
+
+    events() {
+        const { rowsInput,  columnsInput } = this.htmlObjects;
+
+        rowsInput.addEventListener('input', (e) => {
+            this.rows = e.target.value;
+            this.clearGrid();
+            this.renderGrid();
+        });
+
+        columnsInput.addEventListener('input', (e) => {
+            this.columns = e.target.value;
+            this.clearGrid();
+            this.renderGrid();
+        }); 
+    }
+
+    clearGrid() {
+        const { gridPreview } = this.htmlObjects;
+
+        while(gridPreview.firstChild) {
+            gridPreview.removeChild(gridPreview.lastChild);
+        }
+    };
+
+    renderGrid() {
+        const { gridPreview } = this.htmlObjects;
+
+        const cardsCount = this.columns * this.rows;
+        const cards = [];
+        for (let i = 0 ; i < cardsCount; i ++) {
+            cards.push(new PreviewCard());
+        };
+
+        let itemIndex = 0;
+        for (let r = 0; r < this.rows; r++) {
+            const row = document.createElement('div'); 
+
+            for (let c = 0; c < this.columns; c++) {
+                const card = cards[itemIndex].renderCard();
+                row.appendChild(card);
+                itemIndex ++;
+            }
+            gridPreview.appendChild(row);
+        }
+    }
+}
+
+// should inherit or extend Card class
+class PreviewCard {
+    constructor() {
+
+    }
+
+    renderCard () {
+        const card = document.createElement('div');
+        card.dataset.id = this.id;
+        card.className = 'previewCardItem';
+        card.classList.add('hiddenCard');
+        return card;
+    }
 }
 
 class Card {
